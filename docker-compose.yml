@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  app1:
+    build: ./node
+    ports:
+      - "3001:3000"
+    depends_on:
+      - redis
+    networks:
+      - dapr-network
+  app2:
+    build: ./node
+    ports:
+      - "3002:3000"
+    depends_on:
+      - redis
+    networks:
+      - dapr-network
+  app3:
+    build: ./node
+    ports:
+      - "3003:3000"
+    depends_on:
+      - redis
+    networks:
+      - dapr-network
+
+  # redis --> https://redis.io/
+  redis:
+    image: "redis:alpine"
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - dapr-network
+
+  # dapr ---> https://docs.dapr.io/
+  dapr:
+    image: "daprio/daprd:edge"
+    container_name: dapr
+    command: ["./daprd", "--app-id", "app", "--dapr-http-port", "3500", "--components-path", "/components"]
+    ports:
+      - "3500:3500"
+    networks:
+      - dapr-network
+    volumes:
+      - "./components/:/components"
+    environment:
+      DAPR_API_TOKEN: '1234' # Enable API token authentication in Dapr and use this token to client
+
+networks:
+  dapr-network:
+    driver: bridge
